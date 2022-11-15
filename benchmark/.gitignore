@@ -1,0 +1,5 @@
+# for drawio files
+.$*drawio*
+/profiles/src
+/profiles/out
+/report.md
