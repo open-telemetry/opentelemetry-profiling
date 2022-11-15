@@ -31,7 +31,8 @@ func main() {
 		for scanner.Scan() {
 			str := scanner.Text()
 			arr := strings.Split(str, " ")
-			p.Append(arr[0], must.NotError(strconv.Atoi(arr[1])))
+			stacktrace := strings.Split(arr[0], ";")
+			p.Append(stacktrace, must.NotError(strconv.Atoi(arr[1])))
 		}
 
 		if err := scanner.Err(); err != nil {

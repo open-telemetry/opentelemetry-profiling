@@ -1,28 +1,93 @@
 package reference
 
 import (
-	"encoding/json"
 	"io"
+	"time"
+
+	"google.golang.org/protobuf/proto"
 )
 
-type line struct {
-	Stacktrace string
-	Value      int
+type Builder struct {
+	locations map[string]uint64
+	functions map[string]uint64
+	strings   map[string]int64
+	profile   *Profile
 }
 
-type Profile struct {
-	Lines []line
+func New() *Builder {
+	return &Builder{
+		locations: make(map[string]uint64),
+		functions: make(map[string]uint64),
+		strings:   make(map[string]int64),
+		profile: &Profile{
+			StringTable: []string{""},
+		},
+	}
 }
 
-func New() *Profile {
-	return &Profile{}
+func (b *Builder) Append(stack []string, value int) {
+	valueSlice := []int64{int64(value)}
+	loc := []uint64{}
+	for _, l := range stack {
+		loc = append(loc, b.newLocation(l))
+	}
+	sample := &Sample{LocationId: loc, Value: valueSlice}
+	b.profile.Sample = append(b.profile.Sample, sample)
 }
 
-func (p *Profile) Append(stacktrace string, value int) {
-	p.Lines = append(p.Lines, line{Stacktrace: stacktrace, Value: value})
+func (b *Builder) Serialize(w io.Writer) error {
+	b.profile.SampleType = []*ValueType{{Type: b.newString("cpu"), Unit: b.newString("samples")}}
+	b.profile.TimeNanos = time.Now().UnixNano()
+
+	res, err := proto.Marshal(b.profile)
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(res)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (p *Profile) Serialize(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
+func (b *Builder) newString(value string) int64 {
+	id, ok := b.strings[value]
+	if !ok {
+		id = int64(len(b.profile.StringTable))
+		b.profile.StringTable = append(b.profile.StringTable, value)
+		b.strings[value] = id
+	}
+	return id
+}
+
+func (b *Builder) newLocation(location string) uint64 {
+	id, ok := b.locations[location]
+	if !ok {
+		id = uint64(len(b.profile.Location) + 1)
+		newLoc := &Location{
+			Id:   id,
+			Line: []*Line{{FunctionId: b.newFunction(location)}},
+		}
+		b.profile.Location = append(b.profile.Location, newLoc)
+		b.locations[location] = newLoc.Id
+	}
+	return id
+}
+
+func (b *Builder) newFunction(function string) uint64 {
+	id, ok := b.functions[function]
+	if !ok {
+		id = uint64(len(b.profile.Function) + 1)
+		name := b.newString(function)
+		newFn := &Function{
+			Id:         id,
+			Name:       name,
+			SystemName: name,
+		}
+		b.functions[function] = id
+		b.profile.Function = append(b.profile.Function, newFn)
+	}
+	return id
 }
