@@ -42,7 +42,7 @@
 // 	protoc        v3.19.1
 // source: profile.proto
 
-package reference
+package pprof
 
 import (
 	reflect "reflect"

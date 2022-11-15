@@ -1,4 +1,4 @@
-package reference
+package pprof
 
 import (
 	"io"
@@ -25,6 +25,10 @@ func New() *Builder {
 	}
 }
 
+func (b *Builder) Name() string {
+	return "pprof"
+}
+
 func (b *Builder) Append(stack []string, value int) {
 	valueSlice := []int64{int64(value)}
 	loc := []uint64{}
@@ -38,6 +42,7 @@ func (b *Builder) Append(stack []string, value int) {
 func (b *Builder) Serialize(w io.Writer) error {
 	b.profile.SampleType = []*ValueType{{Type: b.newString("cpu"), Unit: b.newString("samples")}}
 	b.profile.TimeNanos = time.Now().UnixNano()
+	b.profile.DurationNanos = (10 * time.Second).Nanoseconds()
 
 	res, err := proto.Marshal(b.profile)
 	if err != nil {

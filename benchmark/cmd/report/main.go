@@ -4,16 +4,25 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"otelprofiling/reference"
+	"otelprofiling/implementations/collapsed"
+	"otelprofiling/implementations/pprof"
 
 	"github.com/jzelinskie/must"
 )
+
+type Implementation interface {
+	Name() string
+	Append(stacktrace []string, value int)
+	Serialize(w io.Writer) error
+}
 
 func main() {
 	filepaths, err := filepath.Glob("./profiles/intermediary/*")
@@ -23,30 +32,40 @@ func main() {
 	}
 
 	for _, path := range filepaths {
-		file := must.NotError(os.Open(path))
 
-		p := reference.New()
-
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			str := scanner.Text()
-			arr := strings.Split(str, " ")
-			stacktrace := strings.Split(arr[0], ";")
-			p.Append(stacktrace, must.NotError(strconv.Atoi(arr[1])))
+		implementations := []Implementation{
+			collapsed.New(),
+			pprof.New(),
 		}
 
-		if err := scanner.Err(); err != nil {
-			log.Fatal(err)
+		for _, implementation := range implementations {
+			file := must.NotError(os.Open(path))
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				str := scanner.Text()
+				arr := strings.Split(str, " ")
+				stacktrace := strings.Split(arr[0], ";")
+				implementation.Append(stacktrace, must.NotError(strconv.Atoi(arr[1])))
+			}
+
+			if err := scanner.Err(); err != nil {
+				log.Fatal(err)
+			}
+
+			buf := &bytes.Buffer{}
+			implementation.Serialize(buf)
+
+			basename := filepath.Base(path)
+			res := buf.Bytes()
+
+			dir := filepath.Join("profiles", "out", implementation.Name())
+			os.MkdirAll(dir, 0755)
+			ioutil.WriteFile(filepath.Join(dir, filepath.Base(path)), res, 0644)
+
+			fmt.Printf("Implementation: %s\n", implementation.Name())
+			fmt.Printf("Filename: %s\n", basename)
+			fmt.Printf("Size of output: %d\n", len(res))
+			fmt.Print("\n")
 		}
-
-		buf := &bytes.Buffer{}
-		p.Serialize(buf)
-
-		basename := filepath.Base(path)
-		size := buf.Bytes()
-
-		fmt.Printf("Filename: %s\n", basename)
-		fmt.Printf("Size of output: %d\n", len(size))
-		fmt.Print("\n")
 	}
 }

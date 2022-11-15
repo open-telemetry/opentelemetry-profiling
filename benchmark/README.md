@@ -3,7 +3,7 @@
 This repository consists of :
 * data sets (`/profiles`)
 * tool to convert (`/cmd/convert`)
-* reference implementation of Open Telemetry profiling format converter (`/reference`)
+* implementations of Open Telemetry profiling format converter (`/implementations/*`)
 * tool to generate benchmarking reports (`/cmd/report`)
 
 ![diagram describing relationships between main components](./diagram.drawio.svg)
@@ -29,7 +29,7 @@ You can contribute by creating issues or pull requests. Best ways to contribute 
 
 * You can add profiles to the data set. In order to do that first add your profiles to `/profiles/src` directory. You can then run `make convert` to perform anonymization of symbol names and conversion into intermediary format.
 
-* You can modify the reference implementation (`/reference`) and make improvements.
+* You can modify the encoder implementations (`/implementations`) and make improvements.
 
 * You can make any other improvements to the repository.
 
