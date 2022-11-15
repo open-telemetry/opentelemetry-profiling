@@ -21,6 +21,7 @@ make convert
 #### To run the benchmarks and generate reports
 
 ```bash
+# this will print a benchmark report in the terminal and put a markdown report at ./report.md
 make report
 ```
 
