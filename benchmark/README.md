@@ -1,9 +1,10 @@
 # Open Telemetry profiling benchmarks
 
-This repository consists of :
+This repository consists of:
 * data sets (`/profiles`)
-* tool to convert (`/cmd/convert`)
-* implementations of Open Telemetry profiling format converter (`/implementations/*`)
+* parsers for various profiling formats (`/parsers/*`)
+* tool to convert from various formats to intermediary format (`/cmd/convert`)
+* encoders for various profiling formats (`/encoders/*`)
 * tool to generate benchmarking reports (`/cmd/report`)
 
 ![diagram describing relationships between main components](./diagram.drawio.svg)
@@ -20,16 +21,16 @@ make convert
 #### To run the benchmarks and generate reports
 
 ```bash
-make benchmark
+make report
 ```
 
 ### How to contribute
 
 You can contribute by creating issues or pull requests. Best ways to contribute are:
 
-* You can add profiles to the data set. In order to do that first add your profiles to `/profiles/src` directory. You can then run `make convert` to perform anonymization of symbol names and conversion into intermediary format.
+* You can add profiles to the data set. In order to do that first add your profiles to `/profiles/src` directory. You can then run `make convert` to perform conversion and anonymization of symbol names and conversion into intermediary format. Anonymization is optional and has to be explicitly by adding "sensitive" to the file name.
 
-* You can modify the encoder implementations (`/implementations`) and make improvements.
+* You can modify the encoder encoders (`/encoders`) and make improvements.
 
 * You can make any other improvements to the repository.
 

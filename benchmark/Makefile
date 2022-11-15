@@ -2,6 +2,6 @@
 convert:
 	go run ./cmd/convert
 
-.PHONY: benchmark
-benchmark:
+.PHONY: report
+report:
 	go run ./cmd/report

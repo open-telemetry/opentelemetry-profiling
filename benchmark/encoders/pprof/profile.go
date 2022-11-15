@@ -2,6 +2,7 @@ package pprof
 
 import (
 	"io"
+	"otelprofiling/parsers"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -29,10 +30,10 @@ func (b *Builder) Name() string {
 	return "pprof"
 }
 
-func (b *Builder) Append(stack []string, value int) {
-	valueSlice := []int64{int64(value)}
+func (b *Builder) Append(s parsers.Sample) {
+	valueSlice := []int64{int64(s.Value)}
 	loc := []uint64{}
-	for _, l := range stack {
+	for _, l := range s.Stacktrace {
 		loc = append(loc, b.newLocation(l))
 	}
 	sample := &Sample{LocationId: loc, Value: valueSlice}

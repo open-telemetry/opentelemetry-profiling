@@ -1,8 +1,9 @@
-package collapsed
+package json
 
 import (
 	"encoding/json"
 	"io"
+	"otelprofiling/parsers"
 	"strings"
 )
 
@@ -20,11 +21,11 @@ func New() *Profile {
 }
 
 func (p *Profile) Name() string {
-	return "collapsed"
+	return "json"
 }
 
-func (p *Profile) Append(stacktrace []string, value int) {
-	p.Lines = append(p.Lines, line{Stacktrace: strings.Join(stacktrace, ";"), Value: value})
+func (p *Profile) Append(s parsers.Sample) {
+	p.Lines = append(p.Lines, line{Stacktrace: strings.Join(s.Stacktrace, ";"), Value: s.Value})
 }
 
 func (p *Profile) Serialize(w io.Writer) error {
