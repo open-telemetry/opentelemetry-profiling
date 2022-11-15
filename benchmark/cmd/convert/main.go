@@ -14,11 +14,7 @@ import (
 )
 
 func main() {
-	filepaths, err := filepath.Glob("./profiles/src/*")
-
-	if err != nil {
-		panic(err)
-	}
+	filepaths := must.NotError(filepath.Glob("./profiles/src/*"))
 
 	for _, path := range filepaths {
 		var parser parsers.Parser
