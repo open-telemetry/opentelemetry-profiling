@@ -7,26 +7,26 @@ import (
 	"otelprofiling/parsers"
 )
 
-type Builder struct {
-	Builder *pprof.Builder
+type Encoder struct {
+	pprofEncoder *pprof.Encoder
 }
 
-func New() *Builder {
-	return &Builder{
-		Builder: pprof.New(),
+func New() *Encoder {
+	return &Encoder{
+		pprofEncoder: pprof.New(),
 	}
 }
 
-func (b *Builder) Name() string {
+func (b *Encoder) Name() string {
 	return "pprof-gzip"
 }
 
-func (b *Builder) Append(s parsers.Sample) {
-	b.Builder.Append(s)
+func (b *Encoder) Append(s parsers.Sample) {
+	b.pprofEncoder.Append(s)
 }
 
-func (b *Builder) Serialize(w io.Writer) error {
+func (b *Encoder) Serialize(w io.Writer) error {
 	gw := gzip.NewWriter(w)
 	defer gw.Close()
-	return b.Builder.Serialize(gw)
+	return b.pprofEncoder.Serialize(gw)
 }

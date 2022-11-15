@@ -8,15 +8,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type Builder struct {
+type Encoder struct {
 	locations map[string]uint64
 	functions map[string]uint64
 	strings   map[string]int64
 	profile   *Profile
 }
 
-func New() *Builder {
-	return &Builder{
+func New() *Encoder {
+	return &Encoder{
 		locations: make(map[string]uint64),
 		functions: make(map[string]uint64),
 		strings:   make(map[string]int64),
@@ -26,11 +26,11 @@ func New() *Builder {
 	}
 }
 
-func (b *Builder) Name() string {
+func (b *Encoder) Name() string {
 	return "pprof"
 }
 
-func (b *Builder) Append(s parsers.Sample) {
+func (b *Encoder) Append(s parsers.Sample) {
 	valueSlice := []int64{int64(s.Value)}
 	loc := []uint64{}
 	for _, l := range s.Stacktrace {
@@ -40,7 +40,7 @@ func (b *Builder) Append(s parsers.Sample) {
 	b.profile.Sample = append(b.profile.Sample, sample)
 }
 
-func (b *Builder) Serialize(w io.Writer) error {
+func (b *Encoder) Serialize(w io.Writer) error {
 	b.profile.SampleType = []*ValueType{{Type: b.newString("cpu"), Unit: b.newString("samples")}}
 	b.profile.TimeNanos = time.Now().UnixNano()
 	b.profile.DurationNanos = (10 * time.Second).Nanoseconds()
@@ -58,7 +58,7 @@ func (b *Builder) Serialize(w io.Writer) error {
 	return nil
 }
 
-func (b *Builder) newString(value string) int64 {
+func (b *Encoder) newString(value string) int64 {
 	id, ok := b.strings[value]
 	if !ok {
 		id = int64(len(b.profile.StringTable))
@@ -68,7 +68,7 @@ func (b *Builder) newString(value string) int64 {
 	return id
 }
 
-func (b *Builder) newLocation(location string) uint64 {
+func (b *Encoder) newLocation(location string) uint64 {
 	id, ok := b.locations[location]
 	if !ok {
 		id = uint64(len(b.profile.Location) + 1)
@@ -82,7 +82,7 @@ func (b *Builder) newLocation(location string) uint64 {
 	return id
 }
 
-func (b *Builder) newFunction(function string) uint64 {
+func (b *Encoder) newFunction(function string) uint64 {
 	id, ok := b.functions[function]
 	if !ok {
 		id = uint64(len(b.profile.Function) + 1)
